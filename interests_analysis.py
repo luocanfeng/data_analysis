@@ -2,7 +2,7 @@
 """
 Created on Thu Dec 01 12:05:07 2016
 
-@author: Administrator
+@author: luocanfeng
 """
 import time, copy
 import numpy as np
@@ -130,15 +130,39 @@ def kmeans(data):
     ax.set_yticks(())
     plt.text(-3.5, 1.8, 'train time: %.2fs\ninertia: %f'%(tcost, kmeans.inertia_))
     '''
-    
-def pca(X):
+
+# 对分类后的数据降维展现，降维思路参考Ng的ML课程中的Dimensionality Reduction
+def plotClusteredData(clusteredData):
+    return
+
+def pca(data):
     t0 = time.time()
-    pca = PCA()
-    pca.fit(X)
+    pca = PCA(2)
+    pca.fit(data)
+    
     t1 = time.time()
     tcost = t1 - t0
     print 'KMeans cost %ds'%tcost
+    print 'components_: \n', pca.components_, '\n'
+    print 'explained_variance_: \n', pca.explained_variance_, '\n'
     print 'explained_variance_ratio_: \n', pca.explained_variance_ratio_, '\n'
+    print 'mean_: \n', pca.mean_, '\n'
+    print 'n_components_: \n', pca.n_components_, '\n'
+    print 'noise_variance_: \n', pca.noise_variance_, '\n'
+    
+    data_zs = 1.0 * (data - data.mean()) / data.std() #数据标准化
+    data_zs = data_zs.fillna(0)
+    pca.fit(data_zs)
+    
+    t2 = time.time()
+    tcost = t2 - t1
+    print 'KMeans cost %ds'%tcost
+    print 'components_: \n', pca.components_, '\n'
+    print 'explained_variance_: \n', pca.explained_variance_, '\n'
+    print 'explained_variance_ratio_: \n', pca.explained_variance_ratio_, '\n'
+    print 'mean_: \n', pca.mean_, '\n'
+    print 'n_components_: \n', pca.n_components_, '\n'
+    print 'noise_variance_: \n', pca.noise_variance_, '\n'
 
 
 
@@ -146,7 +170,7 @@ data = loadAndPreprocess(folder + '/interests.csv')
 #print data.head(21)
 #print data.isnull().sum()
 #print data.isnull().sum().sum()
-kmeans(data)
-#pca(data)
+#kmeans(data)
+pca(data)
 
 

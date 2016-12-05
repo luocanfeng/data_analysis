@@ -2,7 +2,7 @@
 """
 Created on Mon Nov 28 16:47:53 2016
 
-@author: Administrator
+@author: luocanfeng
 """
 # 需要安装hdfs，pip install hdfs
 # 需要使用OpenVPN代理才能访问这个域名
