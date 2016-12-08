@@ -93,6 +93,7 @@ figure = plt.figure(figsize=(20, 20), dpi=400)
 
 i = 1
 for IMEIIdx in randomIMEIIndexes:
+    data = datas[IMEIIdx]
     IMEI = Index2IMEIDict[IMEIIdx]
 
     ax = plt.subplot(4, 4, i, projection='3d')
