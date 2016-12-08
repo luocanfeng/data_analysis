@@ -40,9 +40,9 @@ maxIMEIIndex = max(randomIMEIIndexes)
 
 datas = {}
 finished = False
-xmin,xmax,ymin,ymax=255,-255,255,-255
+large=1024*1024*1024; small=-large;
+xmin,xmax,ymin,ymax,zmin,zmax=large,small,large,small,large,small
 start_date=np.datetime64(datetime.datetime(2016, 12, 12))
-end_date=np.datetime64(datetime.datetime(1980, 1, 1))
 reader = pd.read_csv(datafilepath, encoding='gbk', iterator=True)
 while not finished:
     chunk = reader.get_chunk(sample_data_size)
@@ -65,7 +65,6 @@ while not finished:
             ymin = min(ymin, min(data['Latitude']))
             ymax = max(ymax, max(data['Latitude']))
             start_date = min(start_date, min(data['DateAndHour']))
-            end_date = max(end_date, max(data['DateAndHour']))
             if IMEIIdx in datas.keys():
                 datas[IMEIIdx].append(data)
             else:
@@ -73,6 +72,16 @@ while not finished:
         if IMEIIdx > maxIMEIIndex:
             finished = True
             break
+
+# compute zmin and zmax
+for IMEIIdx in randomIMEIIndexes:
+    data = datas[IMEIIdx]
+    data.columns = ['IMEIIdx', 'Hours', 'Longitude', 'Latitude']
+    data.loc[:, 'Hours'] = data['Hours'].apply(lambda x:\
+                                (x - start_date) / np.timedelta64(3600, 's'))
+    #print data.head()
+    zmin = min(zmin, min(data['Hours']))
+    zmax = max(zmax, max(data['Hours']))
 
 
 plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
@@ -84,31 +93,23 @@ figure = plt.figure(figsize=(20, 20), dpi=400)
 
 i = 1
 for IMEIIdx in randomIMEIIndexes:
-    data = datas[IMEIIdx]
-    data.columns = ['IMEIIdx', 'Hours', 'Longitude', 'Latitude']
-    data.loc[:, 'Hours'] = data['Hours'].apply(lambda x:\
-                                (x - start_date) / np.timedelta64(3600, 's'))
-    #print data.head()
-    
     IMEI = Index2IMEIDict[IMEIIdx]
 
     ax = plt.subplot(4, 4, i, projection='3d')
-    #ax = plt.subplot(3, 3, i)
     plt.title(IMEI)
     plt.xlim(math.floor(xmin*10)/10, math.ceil(xmax*10)/10);
     plt.xlabel('Longitude')
     plt.ylim(math.floor(ymin*10)/10, math.ceil(ymax*10)/10);
     plt.ylabel('Latitude')
+    ax.set_zlim(zmin, zmax)
+    ax.set_zlabel('Hours')
     ax.get_xaxis().get_major_formatter().set_scientific(False)
     ax.get_yaxis().get_major_formatter().set_scientific(False)
-    plt.plot(data['Longitude'], data['Latitude'], zs=data['Hours'],\
-             zdir='z')
-    
+    plt.plot(data['Longitude'], data['Latitude'], zs=data['Hours'], zdir='z')
     i = i + 1
+
 
 figure.show()
 figure.savefig(folder + '/test.png')
-
-
 
 
