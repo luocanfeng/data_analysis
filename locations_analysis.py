@@ -17,6 +17,10 @@ folder = 'D:/bigdata/unicom'
 sample_data_size = 10000
 
 
+# Suspend the SettingWithCopyWarning
+# pd.options.mode.chained_assignment = None  # default='warn'
+
+
 start = time.time()
 
 datafilepath = folder + '/locations_out.csv'
@@ -24,15 +28,15 @@ datafilepath = folder + '/locations_out.csv'
 IMEIs = pd.read_csv(folder + '/IMEIs.csv', encoding='gbk')
 Index2IMEIDict = IMEIs.set_index('index')['IMEI'].to_dict()
 IMEIsCount = IMEIs.count()
-print IMEIs.head()
+#print IMEIs.head()
 
 
 sampleIMEISize = 16
 randomIMEIIndexes = np.random.randint(0, 1000, sampleIMEISize)
 randomIMEIIndexes.sort()
-print randomIMEIIndexes
+#print randomIMEIIndexes
 maxIMEIIndex = max(randomIMEIIndexes)
-print 'maxIMEIIndex=', maxIMEIIndex
+#print 'maxIMEIIndex=', maxIMEIIndex
 
 datas = {}
 finished = False
@@ -46,9 +50,16 @@ while not finished:
     for IMEIIdx in IMEIIdxes:
         if IMEIIdx in randomIMEIIndexes:
             data = chunk[chunk['IMEIIdx'] == IMEIIdx]
-            data['DateAndHour'] = pd.to_datetime(data['DateAndHour'].apply(str)\
-                                    .apply(lambda s:s[0:4] + '-' + s[4:6] + '-'\
-                                           + s[6:8] + ' ' + s[8:10]))
+            data.loc[:, 'DateAndHour'] = pd.to_datetime(\
+                    data['DateAndHour'].apply(str)
+                            .apply(lambda s:s[0:4] + '-' + s[4:6] + '-'\
+                                       + s[6:8] + ' ' + s[8:10]))
+            '''
+            data.loc[:, 'DateAndHour'] = data['DateAndHour'].apply(str)
+            data.loc[:, 'DateAndHour'] = data['DateAndHour'].apply(lambda s:\
+                    s[0:4] + '-' + s[4:6] + '-' + s[6:8] + ' ' + s[8:10])
+            data.loc[:, 'DateAndHour'] = pd.to_datetime(data['DateAndHour'])
+            '''
             xmin = min(xmin, min(data['Longitude']))
             xmax = max(xmax, max(data['Longitude']))
             ymin = min(ymin, min(data['Latitude']))
@@ -74,8 +85,10 @@ figure = plt.figure(figsize=(20, 20), dpi=400)
 i = 1
 for IMEIIdx in randomIMEIIndexes:
     data = datas[IMEIIdx]
-    data['Hours'] = (data['DateAndHour'] - start_date) / np.timedelta64(3600, 's')
-    print data.head()
+    data.columns = ['IMEIIdx', 'Hours', 'Longitude', 'Latitude']
+    data.loc[:, 'Hours'] = data['Hours'].apply(lambda x:\
+                                (x - start_date) / np.timedelta64(3600, 's'))
+    #print data.head()
     
     IMEI = Index2IMEIDict[IMEIIdx]
 
